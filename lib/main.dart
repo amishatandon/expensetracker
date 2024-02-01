@@ -1,5 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/expenses.dart';
+import 'package:expense_tracker/firebase_options.dart';
 // import 'package:flutter/services.dart'; //use to lock the screen oriantation of the app.
 
 var kcolorScheme = ColorScheme.fromSeed(
@@ -11,8 +13,10 @@ var kDarkColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromARGB(255, 5, 99, 125),
 );
 
-void main() {
-  //WidgetsFlutterBinding.ensureInitialized(); //locking the orientation and running the app.
+void main() async {
+  WidgetsFlutterBinding
+      .ensureInitialized(); //locking the orientation and running the app.
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   //SystemChrome.setPreferredOrientations([
   //DeviceOrientation.portraitUp, //locking the orientation.
   //]).then((value) {

@@ -13,7 +13,8 @@ enum Category {
   food,
   travel,
   leisure,
-  work
+  work,
+  other
 } //creates custom types which is a combination of predefined values.
 
 const categoryIcons = {
@@ -24,15 +25,16 @@ const categoryIcons = {
 }; // icon that belong to multiple files.
 
 class Expense {
-  Expense(
-      {required this.title,
-      required this.amount,
-      required this.date,
-      required this.category})
-      : id = uuid
-            .v4(); //initalizer list after clsong parenthesis. v4 method to generate unique id.
+  Expense({
+    String? id, // Make the 'id' parameter optional
+    required this.title,
+    required this.amount,
+    required this.date,
+    required this.category,
+  }) : id = id ??
+            uuid.v4(); //initalizer list after clsong parenthesis. v4 method to generate unique id.
 
-  final String id;
+  final String? id;
   final String title;
   final double amount;
   final DateTime date;

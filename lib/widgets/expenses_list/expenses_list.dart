@@ -1,43 +1,57 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_tracker/expenses.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/widgets/expenses_list/expenses_item.dart';
 import 'package:flutter/material.dart';
 
 class ExpensesList extends StatelessWidget {
   const ExpensesList({
-    super.key,
-    required this.expenses,
+    Key? key,
     required this.onRemoveExpense,
-  }); // to accept the list of expenses as input.
+    required this.expenses,
+  });
 
-  final List<Expense> expenses;
   final void Function(Expense expense) onRemoveExpense;
-
+  final List<Expense> expenses;
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      // automatically scrollable.
-      itemCount: expenses.length, //item count for index.
-      itemBuilder: (context, index) => Dismissible(
-        background: Container(
-          color: Theme.of(context).colorScheme.error.withOpacity(0.75),
-          margin: EdgeInsets.symmetric(
-            horizontal: Theme.of(context).cardTheme.margin!.horizontal,
-          ),
-        ),
-        //swipable or removable widget.
-        key: ValueKey(
-          expenses[index],
-        ),
-        onDismissed: (direction) {
-          // pass a direction
-          onRemoveExpense(
-            expenses[index],
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('expenses').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
           );
-        }, //change the _registeredExpense list on removing it.
-        child: ExpenseItem(
-          expenses[index],
-        ),
-      ),
+        }
+
+        final expenses = snapshot.data!.docs.map((document) {
+          final data = document.data() as Map<String, dynamic>;
+          return Expense(
+            id: document.id,
+            title: data['title'],
+            amount: data['amount'],
+            date: (data['date'] as Timestamp).toDate(),
+            category: Expenses.getCategoryFromString(data['category']),
+          );
+        }).toList();
+
+        return ListView.builder(
+          itemCount: expenses.length,
+          itemBuilder: (context, index) => Dismissible(
+            key: ValueKey(expenses[index].id),
+            background: Container(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.75),
+              margin: EdgeInsets.symmetric(
+                horizontal: Theme.of(context).cardTheme.margin!.horizontal,
+              ),
+            ),
+            onDismissed: (direction) {
+              onRemoveExpense(expenses[index]);
+            },
+            child: ExpenseItem(expenses[index]),
+          ),
+        );
+      },
     );
-  } //we don't manage any data just output the expenses list.
+  }
 }

@@ -27,7 +27,7 @@ class ExpenseItem extends StatelessWidget {
               children: [
                 Text(
                     // the dollar sign with a backward slash will be treated as text.
-                    '\$${expense.amount.toStringAsFixed(2)}'), //means 12.3456 => 12.34 two digits after dot.
+                    '\₹${expense.amount.toStringAsFixed(2)}'), //means 12.3456 => 12.34 two digits after dot.
                 const Spacer(), // will take all the remaining space b/w the two widgets.
                 Row(
                   children: [

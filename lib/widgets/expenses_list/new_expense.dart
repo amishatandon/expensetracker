@@ -37,6 +37,7 @@ class _NewExpenseState extends State<NewExpense> {
   }
 
   void _submitExpenseData() async {
+    print("test");
     final enteredAmount = double.tryParse(_amountController.text);
 
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
@@ -78,13 +79,13 @@ class _NewExpenseState extends State<NewExpense> {
         'date': newExpense.date,
         'category': newExpense.category.name,
       });
-
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Expense added successfully'),
         ),
       );
-
+      
       _clearForm();
     } catch (error) {
       print('Error adding expense: $error');

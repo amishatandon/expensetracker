@@ -3,6 +3,7 @@ import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_tracker/widgets/expenses_list/new_expense.dart';
 import 'package:flutter/material.dart';
+import 'package:expense_tracker/widgets/expenses_list/chart/chart.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({Key? key});
@@ -18,6 +19,10 @@ class Expenses extends StatefulWidget {
         return Category.work;
       case 'leisure':
         return Category.leisure;
+         case 'food':
+        return Category.food;
+      case 'travel':
+        return Category.travel;
       default:
         return Category.other;
     }
@@ -66,8 +71,43 @@ class _ExpensesState extends State<Expenses> {
     });
   }
 
-  void _removeExpense(Expense expense) async {
+ void _removeExpense(Expense expense) async {
+    // Temporarily store the expense in case we need to undo the deletion
+    final removedExpense = expense;
+    final expenseIndex = _registerExpenses.indexOf(expense);
+
+    // Remove the expense from the list first
+    setState(() {
+      _registerExpenses.remove(expense);
+    });
+
+    // Remove the expense from Firebase
     await _expensesCollection.doc(expense.id).delete();
+
+    // Show a snackbar with an undo button
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Expense deleted'),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () async {
+            // Restore the expense in the list
+            setState(() {
+              _registerExpenses.insert(expenseIndex, removedExpense);
+            });
+
+            // Re-add the expense to Firebase
+            await _expensesCollection.add({
+              'title': removedExpense.title,
+              'amount': removedExpense.amount,
+              'date': Timestamp.fromDate(removedExpense.date),
+              'category': removedExpense.category.name,
+            });
+          },
+        ),
+      ),
+    );
   }
 
   void _openAddExpenseOverlay() {
@@ -107,6 +147,7 @@ class _ExpensesState extends State<Expenses> {
       body: width < 600
           ? Column(
               children: [
+                Chart(expenses: _registerExpenses),
                 Expanded(
                   child: mainContent,
                 ),
@@ -115,7 +156,12 @@ class _ExpensesState extends State<Expenses> {
           : Row(
               children: [
                 Expanded(
-                  child: mainContent,
+                  child: Column(
+                    children: [
+                      Chart(expenses: _registerExpenses),
+                      Expanded(child: mainContent,),
+                    ],
+                  ),
                 ),
               ],
             ),
